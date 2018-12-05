@@ -1,19 +1,16 @@
 <?php
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 namespace Magento\Sales\Test\TestCase;
 
-use Magento\Sales\Test\Fixture\OrderInjectable;
-use Magento\Mtf\Fixture\FixtureFactory;
-use Magento\Mtf\Fixture\FixtureInterface;
-use Magento\Mtf\TestCase\Injectable;
+use Magento\Mtf\TestCase\Scenario;
 
 /**
  * Preconditions:
- * 1. Enable payment method "Check/Money Order".
+ * 1. Enable payment method one of "Check/Money Order/Bank Transfer/Cash on Delivery/Purchase Order".
  * 2. Enable shipping method one of "Flat Rate/Free Shipping".
  * 3. Create order.
  * 4. Create Invoice.
@@ -25,76 +22,22 @@ use Magento\Mtf\TestCase\Injectable;
  * 4. On order's page click 'Refund offline' button.
  * 5. Perform all assertions.
  *
- * @group Order_Management_(CS)
+ * @group Order_Management
  * @ZephyrId MAGETWO-29116
  */
-class CreateCreditMemoEntityTest extends Injectable
+class CreateCreditMemoEntityTest extends Scenario
 {
     /* tags */
     const MVP = 'yes';
-    const DOMAIN = 'CS';
     /* end tags */
 
     /**
-     * Fixture factory.
+     * Runs test for credit memo creation for order placed with offline payment method.
      *
-     * @var FixtureFactory
-     */
-    protected $fixtureFactory;
-
-    /**
-     * Skip fields for create product fixture.
-     *
-     * @var array
-     */
-    protected $skipFields = [
-        'attribute_set_id',
-        'website_ids',
-        'checkout_data',
-        'type_id',
-        'price',
-    ];
-
-    /**
-     * Set up configuration.
-     *
-     * @param FixtureFactory $fixtureFactory
      * @return void
      */
-    public function __prepare(FixtureFactory $fixtureFactory)
+    public function test()
     {
-        $this->fixtureFactory = $fixtureFactory;
-
-        $setupConfigurationStep = $this->objectManager->create(
-            'Magento\Config\Test\TestStep\SetupConfigurationStep',
-            ['configData' => 'checkmo, flatrate']
-        );
-        $setupConfigurationStep->run();
-    }
-
-    /**
-     * Create credit memo.
-     *
-     * @param OrderInjectable $order
-     * @param array $data
-     * @return array
-     */
-    public function test(OrderInjectable $order, array $data)
-    {
-        // Preconditions
-        $order->persist();
-        $this->objectManager->create('Magento\Sales\Test\TestStep\CreateInvoiceStep', ['order' => $order])->run();
-
-        // Steps
-        $createCreditMemoStep = $this->objectManager->create(
-            'Magento\Sales\Test\TestStep\CreateCreditMemoStep',
-            ['order' => $order, 'data' => $data]
-        );
-        $result = $createCreditMemoStep->run();
-
-        return [
-            'ids' => ['creditMemoIds' => $result['creditMemoIds']],
-            'customer' => $order->getDataFieldConfig('customer_id')['source']->getCustomer()
-        ];
+        $this->executeScenario();
     }
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -60,7 +60,6 @@ class AssertConfigurableProductForm extends AssertProductForm
      */
     protected $skippedVariationMatrixFields = [
         'configurable_attribute',
-        'special_price'
     ];
 
     /**
@@ -142,7 +141,7 @@ class AssertConfigurableProductForm extends AssertProductForm
     }
 
     /**
-     * Remove price\special price fields from fixture as it should not be retrieved from product form.
+     * Remove price\special price fields from fixture as it should not be retrieved from product form
      *
      * @param FixtureInterface $product
      * @return mixed

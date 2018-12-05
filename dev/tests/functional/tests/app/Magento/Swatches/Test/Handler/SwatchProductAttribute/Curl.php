@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -21,10 +21,8 @@ class Curl extends CatalogProductAttributeCurl implements SwatchProductAttribute
      * @param DataInterface $configuration
      * @param EventManagerInterface $eventManager
      */
-    public function __construct(
-        DataInterface $configuration,
-        EventManagerInterface $eventManager
-    ) {
+    public function __construct(DataInterface $configuration, EventManagerInterface $eventManager)
+    {
         parent::__construct($configuration, $eventManager);
         $this->mappingData['frontend_input'] = [
             'Text Swatch' => 'swatch_text',
@@ -32,23 +30,31 @@ class Curl extends CatalogProductAttributeCurl implements SwatchProductAttribute
     }
 
     /**
+     * @inheritdoc
+     */
+    protected function changeStructureOfTheData(array $data): array
+    {
+        return parent::changeStructureOfTheData($data);
+    }
+
+    /**
      * Re-map options from default options structure to swatches structure,
      * as swatches was initially created with name convention differ from other attributes.
      *
-     * @param array $data
-     * @return array
+     * @inheritdoc
      */
-    protected function changeStructureOfTheData(array $data)
+    protected function getSerializeOptions(array $data): string
     {
-        /** @var array $data */
-        $data = parent::changeStructureOfTheData($data);
-        $data['optiontext'] = $data['option'];
-        $data['swatchtext'] = [
-            'value' => $data['option']['value'],
-        ];
+        $options = [];
+        foreach ($data as $optionRowData) {
+            $optionRowData['optiontext'] = $optionRowData['option'];
+            $optionRowData['swatchtext'] = [
+                'value' => $optionRowData['option']['value']
+            ];
+            unset($optionRowData['option']);
+            $options[] = http_build_query($optionRowData);
+        }
 
-        unset($data['option']);
-
-        return $data;
+        return json_encode($options);
     }
 }

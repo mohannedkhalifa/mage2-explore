@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 umask(0);
@@ -16,6 +16,3 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $objectManager = \Magento\Mtf\ObjectManagerFactory::getObjectManager();
 \Magento\Mtf\ObjectManagerFactory::configure($objectManager);
-
-$magentoObjectManagerFactory = \Magento\Framework\App\Bootstrap::createObjectManagerFactory(BP, $_SERVER);
-$magentoObjectManager = $magentoObjectManagerFactory->create($_SERVER);

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -12,8 +12,10 @@ use Magento\TestFramework\Helper\Bootstrap;
 
 /**
  * Test \Magento\Tax\Model\Sales\Total\Quote\Subtotal
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class SubtotalTest extends \PHPUnit_Framework_TestCase
+class SubtotalTest extends \Magento\TestFramework\Indexer\TestCase
 {
     /**
      * Object Manager
@@ -21,6 +23,24 @@ class SubtotalTest extends \PHPUnit_Framework_TestCase
      * @var \Magento\Framework\ObjectManagerInterface
      */
     private $objectManager;
+
+    /**
+     * @var \Magento\Catalog\Api\ProductRepositoryInterface
+     */
+    private $productRepository;
+
+    public static function setUpBeforeClass()
+    {
+        $db = \Magento\TestFramework\Helper\Bootstrap::getInstance()->getBootstrap()
+            ->getApplication()
+            ->getDbInstance();
+        if (!$db->isDbDumpExists()) {
+            throw new \LogicException('DB dump does not exist.');
+        }
+        $db->restoreFromDbDump();
+
+        parent::setUpBeforeClass();
+    }
 
     protected function setUp()
     {
@@ -39,6 +59,7 @@ class SubtotalTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @magentoAppIsolation enabled
+     * @magentoDbIsolation enabled
      * @magentoDataFixture Magento/Customer/_files/customer.php
      * @magentoDataFixture Magento/Customer/_files/customer_address.php
      * @magentoDataFixture Magento/Tax/_files/tax_classes.php
@@ -64,9 +85,8 @@ class SubtotalTest extends \PHPUnit_Framework_TestCase
         $customer->setGroupId($customerGroup->getId())->save();
 
         $productTaxClassId = $this->getProductTaxClassId();
-        $fixtureProductId = 1;
         /** @var \Magento\Catalog\Model\Product $product */
-        $product = $this->objectManager->create(\Magento\Catalog\Model\Product::class)->load($fixtureProductId);
+        $product = $this->productRepository->get('simple');
         $product->setTaxClassId($productTaxClassId)->save();
 
         $quoteShippingAddressDataObject = $this->getShippingAddressDataObject($fixtureCustomerId);
@@ -108,7 +128,9 @@ class SubtotalTest extends \PHPUnit_Framework_TestCase
         /** @var  \Magento\Quote\Model\Quote\Address\Total $total */
         $total = $this->objectManager->create(\Magento\Quote\Model\Quote\Address\Total::class);
         /** @var \Magento\Quote\Model\Quote\Address\Total\Subtotal $addressSubtotalCollector */
-        $addressSubtotalCollector = $this->objectManager->create(\Magento\Quote\Model\Quote\Address\Total\Subtotal::class);
+        $addressSubtotalCollector = $this->objectManager->create(
+            \Magento\Quote\Model\Quote\Address\Total\Subtotal::class
+        );
         $addressSubtotalCollector->collect($quote, $shippingAssignment, $total);
 
         /** @var \Magento\Tax\Model\Sales\Total\Quote\Subtotal $subtotalCollector */
@@ -156,6 +178,7 @@ class SubtotalTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @magentoDbIsolation disabled
      * @magentoDataFixture Magento/Customer/_files/customer.php
      * @magentoDataFixture Magento/Customer/_files/customer_address.php
      * @magentoDataFixture Magento/Tax/_files/tax_classes.php
@@ -181,13 +204,11 @@ class SubtotalTest extends \PHPUnit_Framework_TestCase
         $customer->setGroupId($customerGroup->getId())->save();
 
         $productTaxClassId = $this->getProductTaxClassId();
-        $fixtureChildProductId = 1;
         /** @var \Magento\Catalog\Model\Product $product */
-        $childProduct = $this->objectManager->create(\Magento\Catalog\Model\Product::class)->load($fixtureChildProductId);
+        $childProduct = $this->productRepository->get('simple');
         $childProduct->setTaxClassId($productTaxClassId)->save();
-        $fixtureProductId = 3;
         /** @var \Magento\Catalog\Model\Product $product */
-        $product = $this->objectManager->create(\Magento\Catalog\Model\Product::class)->load($fixtureProductId);
+        $product = $this->productRepository->get('bundle-product');
         $product->setTaxClassId($productTaxClassId)
             ->setPriceType(\Magento\Catalog\Model\Product\Type\AbstractType::CALCULATE_CHILD)
             ->save();
@@ -231,7 +252,9 @@ class SubtotalTest extends \PHPUnit_Framework_TestCase
         /** @var  \Magento\Quote\Model\Quote\Address\Total $total */
         $total = $this->objectManager->create(\Magento\Quote\Model\Quote\Address\Total::class);
         /** @var \Magento\Quote\Model\Quote\Address\Total\Subtotal $addressSubtotalCollector */
-        $addressSubtotalCollector = $this->objectManager->create(\Magento\Quote\Model\Quote\Address\Total\Subtotal::class);
+        $addressSubtotalCollector = $this->objectManager->create(
+            \Magento\Quote\Model\Quote\Address\Total\Subtotal::class
+        );
         $addressSubtotalCollector->collect($quote, $shippingAssignment, $total);
 
         /** @var \Magento\Tax\Model\Sales\Total\Quote\Subtotal $subtotalCollector */
@@ -240,7 +263,6 @@ class SubtotalTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($expected['subtotal'], $total->getSubtotal());
         $this->assertEquals($expected['subtotal'] + $expected['tax_amount'], $total->getSubtotalInclTax());
-        $this->assertEquals($expected['subtotal'] + $expected['tax_amount'], $address->getBaseSubtotalTotalInclTax());
         $this->assertEquals($expected['discount_amount'], $total->getDiscountAmount());
         $items = $address->getAllItems();
         /** @var \Magento\Quote\Model\Quote\Address\Item $item */
@@ -286,7 +308,9 @@ class SubtotalTest extends \PHPUnit_Framework_TestCase
     protected function getShippingAddressDataObject($fixtureCustomerId)
     {
         $fixtureCustomerAddressId = 1;
-        $customerAddress = $this->objectManager->create(\Magento\Customer\Model\Address::class)->load($fixtureCustomerId);
+        $customerAddress = $this->objectManager->create(
+            \Magento\Customer\Model\Address::class
+        )->load($fixtureCustomerId);
         /** Set data which corresponds tax class fixture */
         $customerAddress->setCountryId('US')->setRegionId(12)->save();
         /**

@@ -1,19 +1,17 @@
 <?php
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 namespace Magento\Bundle\Test\Block\Catalog\Product\View;
 
 use Magento\Bundle\Test\Block\Catalog\Product\View\Summary\ConfiguredPrice;
-use Magento\Catalog\Test\Block\Product\View;
-use Magento\Mtf\Client\ElementInterface;
 
 /**
  * Bundle Summary block.
  */
-class Summary extends View
+class Summary extends \Magento\Catalog\Test\Block\Product\View
 {
     /**
      * Configured Price block selector.
@@ -23,18 +21,32 @@ class Summary extends View
     private $configuredPriceBlockSelector = '.price-configured_price';
 
     /**
+     * Summary items selector.
+     *
+     * @var string
+     */
+    private $summaryItemsSelector = '.bundle li div div';
+
+    /**
      * Get configured price block.
      *
      * @return ConfiguredPrice
      */
     public function getConfiguredPriceBlock()
     {
-        /** @var ElementInterface $element */
-        $element = $this->_rootElement->find($this->configuredPriceBlockSelector);
-
         return $this->blockFactory->create(
             ConfiguredPrice::class,
-            ['element' => $element]
+            ['element' => $this->_rootElement->find($this->configuredPriceBlockSelector)]
         );
+    }
+
+    /**
+     * Get Bundle Summary row items.
+     *
+     * @return \Magento\Mtf\Client\ElementInterface[]
+     */
+    public function getSummaryItems()
+    {
+        return $this->_rootElement->getElements($this->summaryItemsSelector);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -33,23 +33,24 @@ class CategoryProducts extends DataSource
         if (!empty($data['dataset']) && $data['dataset'] !== '-') {
             $dataset = array_map('trim', explode(',', $data['dataset']));
             foreach ($dataset as $value) {
-                $explodeValue = explode('::', $value);
-                $product = $fixtureFactory->createByCode($explodeValue[0], ['dataset' => $explodeValue[1]]);
-                if (!$product->getId()) {
-                    $product->persist();
-                }
-                $this->data[] = $product->getName();
-                $this->products[] = $product;
+                list($fixtureCode, $dataset) = explode('::', $value);
+                $this->products[] = $fixtureFactory->createByCode($fixtureCode, ['dataset' => $dataset]);
             }
-        } else if (isset($data['products']) && is_array($data['products'])) {
+        }
+        if (isset($data['products'])) {
             foreach ($data['products'] as $product) {
-                $this->data[] = $product->getName();
                 $this->products[] = $product;
             }
         }
+        foreach ($this->products as $product) {
+            if (!$product->hasData('id')) {
+                $product->persist();
+            }
+            $this->data[] = $product->getName();
+        }
     }
 
-    /**
+    /**\
      * Return products.
      *
      * @return array

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Framework\Session;
@@ -10,18 +10,14 @@ use Magento\Framework\Session\Config\ConfigInterface;
 use Magento\Framework\Session\SaveHandler;
 use Magento\Framework\App\ObjectManager;
 
-class SaveHandlerTest extends \PHPUnit_Framework_TestCase
+class SaveHandlerTest extends \PHPUnit\Framework\TestCase
 {
-    /** @var  \Magento\Framework\Session\Config\ConfigInterface */
-    private $sessionConfig;
-
-    /** @var  \Magento\Framework\App\DeploymentConfig */
-    private $deploymentConfig;
+    /** @var string Original session.save_handler ini config value */
+    private $originalSaveHandler;
 
     public function setUp()
     {
-        $this->sessionConfig = ObjectManager::getInstance()->get(ConfigInterface::class);
-        $this->deploymentConfig = ObjectManager::getInstance()->get(DeploymentConfig::class);
+        $this->originalSaveHandler = ini_get('session.save_handler');
     }
 
     /**
@@ -33,32 +29,20 @@ class SaveHandlerTest extends \PHPUnit_Framework_TestCase
      */
     public function testSetSaveHandler($deploymentConfigHandler, $iniHandler)
     {
-        $this->markTestSkipped('MAGETWO-56529');
-        // Set expected session.save_handler config
-        if ($deploymentConfigHandler) {
-            if ($deploymentConfigHandler !== 'files') {
-                $expected = 'user';
-            } else {
-                $expected = $deploymentConfigHandler;
-            }
-        } else if ($iniHandler) {
-            $expected = $iniHandler;
-        } else {
-            $expected = SaveHandlerInterface::DEFAULT_HANDLER;
-        }
+        $expected = $this->getExpectedSaveHandler($deploymentConfigHandler, $iniHandler);
 
         // Set ini configuration
         if ($iniHandler) {
-            $oldIni = ini_set('session.save_handler', $iniHandler);
+            ini_set('session.save_handler', $iniHandler);
         }
-
+        $defaultHandler = ini_get('session.save_handler') ?: SaveHandlerInterface::DEFAULT_HANDLER;
         /** @var DeploymentConfig | \PHPUnit_Framework_MockObject_MockObject $deploymentConfigMock */
         $deploymentConfigMock = $this->getMockBuilder(DeploymentConfig::class)
             ->disableOriginalConstructor()
             ->getMock();
         $deploymentConfigMock->expects($this->once())
             ->method('get')
-            ->with(Config::PARAM_SESSION_SAVE_METHOD, SaveHandlerInterface::DEFAULT_HANDLER)
+            ->with(Config::PARAM_SESSION_SAVE_METHOD, $defaultHandler)
             ->willReturn($deploymentConfigHandler ?: SaveHandlerInterface::DEFAULT_HANDLER);
 
         new SaveHandler(
@@ -71,10 +55,12 @@ class SaveHandlerTest extends \PHPUnit_Framework_TestCase
             $expected,
             ObjectManager::getInstance()->get(ConfigInterface::class)->getOption('session.save_handler')
         );
+    }
 
-        // Reset ini configuration
-        if (isset($oldIni)) {
-            ini_set('session.save_handler', $oldIni);
+    public function tearDown()
+    {
+        if (isset($this->originalSaveHandler)) {
+            ini_set('session.save_handler', $this->originalSaveHandler);
         }
     }
 
@@ -86,5 +72,32 @@ class SaveHandlerTest extends \PHPUnit_Framework_TestCase
             [false, 'files'],
             [false, false],
         ];
+    }
+
+    /**
+     * Retrieve expected session.save_handler
+     *
+     * @param string $deploymentConfigHandler
+     * @param string $iniHandler
+     * @return string
+     */
+    private function getExpectedSaveHandler($deploymentConfigHandler, $iniHandler)
+    {
+        // Set expected session.save_handler config
+        if ($deploymentConfigHandler) {
+            if ($deploymentConfigHandler !== 'files') {
+                $expected = 'user';
+                return $expected;
+            } else {
+                $expected = $deploymentConfigHandler;
+                return $expected;
+            }
+        } elseif ($iniHandler) {
+            $expected = $iniHandler;
+            return $expected;
+        } else {
+            $expected = SaveHandlerInterface::DEFAULT_HANDLER;
+            return $expected;
+        }
     }
 }

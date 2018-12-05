@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -58,6 +58,20 @@ class Cart extends Block
     protected $paypalCheckoutButton = '[data-action=checkout-form-submit]';
 
     /**
+     * Locator value for "Check out with PayPal" button.
+     *
+     * @var string
+     */
+    protected $inContextPaypalCheckoutButton = 'ul.checkout-methods-items a[data-action="paypal-in-context-checkout"]';
+
+    /**
+     * Locator value for "Check out with Braintree PayPal" button.
+     *
+     * @var string
+     */
+    protected $braintreePaypalCheckoutButton = './/button[contains(@id, "braintree-paypal-mini-cart")]';
+
+    /**
      * Locator value for "empty Shopping Cart" block.
      *
      * @var string
@@ -79,11 +93,43 @@ class Cart extends Block
     protected $deleteItemButton = 'a.action.action-delete';
 
     /**
+     * PayPal load spinner.
+     *
+     * @var string
+     */
+    protected $preloaderSpinner = '#preloaderSpinner';
+
+    /**
      * Cart item class name.
      *
      * @var string
      */
     protected $cartItemClass = \Magento\Checkout\Test\Block\Cart\CartItem::class;
+
+    /**
+     * Paypal page elements locator.
+     *
+     * @var string
+     */
+    private $popupWindowContent = '#main';
+
+    /**
+     * Locator for page with ajax loading state.
+     *
+     * @var string
+     */
+    private $ajaxLoading = 'body.ajax-loading';
+
+    /**
+     * Wait for PayPal page is loaded.
+     *
+     * @return void
+     */
+    public function waitForFormLoaded()
+    {
+        $this->waitForElementNotVisible($this->preloaderSpinner);
+        $this->waitForElementVisible($this->popupWindowContent);
+    }
 
     /**
      * Get Shopping Cart item.
@@ -126,6 +172,28 @@ class Cart extends Block
     }
 
     /**
+     * Click "Check out with Braintree PayPal" button.
+     *
+     * @return string
+     */
+    public function braintreePaypalCheckout()
+    {
+        $currentWindow = $this->browser->getCurrentWindow();
+        // Button can be enabled/disabled few times.
+        sleep(2);
+
+        $windowsCount = count($this->browser->getWindowHandles());
+        $this->_rootElement->find($this->braintreePaypalCheckoutButton, Locator::SELECTOR_XPATH)
+            ->click();
+        $browser = $this->browser;
+        $this->browser->waitUntil(function () use ($browser, $windowsCount) {
+            return count($browser->getWindowHandles()) === ($windowsCount + 1) ? true: null;
+        });
+
+        return $currentWindow;
+    }
+
+    /**
      * Click "Check out with PayPal" button.
      *
      * @return void
@@ -133,6 +201,23 @@ class Cart extends Block
     public function paypalCheckout()
     {
         $this->_rootElement->find($this->paypalCheckoutButton)->click();
+    }
+
+    /**
+     * Click "Check out with PayPal" button.
+     */
+    public function inContextPaypalCheckout()
+    {
+        $this->waitForCheckoutButton();
+        $windowsCount = count($this->browser->getWindowHandles());
+        $this->_rootElement->find($this->inContextPaypalCheckoutButton)->click();
+        $browser = $this->browser;
+        $this->browser->waitUntil(function () use ($browser, $windowsCount) {
+            return count($browser->getWindowHandles()) === ($windowsCount + 1) ? true: null;
+        });
+        $this->browser->selectWindow();
+        $this->waitForFormLoaded();
+        $this->browser->closeWindow();
     }
 
     /**
@@ -206,5 +291,25 @@ class Cart extends Block
     public function waitCartContainerLoading()
     {
         $this->waitForElementVisible($this->cartContainer);
+    }
+
+    /**
+     * Wait until in-context checkout button is visible.
+     *
+     * @return void
+     */
+    public function waitForCheckoutButton()
+    {
+        $this->waitForElementVisible($this->inContextPaypalCheckoutButton);
+    }
+
+    /**
+     * Wait loading.
+     *
+     * @return void
+     */
+    public function waitForLoader()
+    {
+        $this->waitForElementNotVisible($this->ajaxLoading);
     }
 }

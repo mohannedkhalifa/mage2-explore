@@ -1,17 +1,18 @@
 <?php
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 namespace Magento\Framework\App\Filesystem;
 
+use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\TestFramework\Helper\Bootstrap;
 
 /**
- * Test class for the \Magento\Framework\App\Filesystem\DirectoryResolver verification
+ * Test class for the \Magento\Framework\App\Filesystem\DirectoryResolver verification.
  */
-class DirectoryResolverTest extends \PHPUnit_Framework_TestCase
+class DirectoryResolverTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var \Magento\Framework\ObjectManagerInterface
@@ -24,9 +25,9 @@ class DirectoryResolverTest extends \PHPUnit_Framework_TestCase
     private $directoryResolver;
 
     /**
-     * @var \Magento\Framework\Filesystem\Directory\WriteInterface
+     * @var \Magento\Framework\Filesystem
      */
-    private $directory;
+    private $filesystem;
 
     /**
      * @inheritdoc
@@ -36,9 +37,7 @@ class DirectoryResolverTest extends \PHPUnit_Framework_TestCase
         $this->objectManager = Bootstrap::getObjectManager();
         $this->directoryResolver = $this->objectManager
             ->create(\Magento\Framework\App\Filesystem\DirectoryResolver::class);
-        /** @var \Magento\Framework\Filesystem $filesystem */
-        $filesystem = $this->objectManager->create(\Magento\Framework\Filesystem::class);
-        $this->directory = $filesystem->getDirectoryWrite(\Magento\Framework\App\Filesystem\DirectoryList::MEDIA);
+        $this->filesystem = $this->objectManager->create(\Magento\Framework\Filesystem::class);
     }
 
     /**
@@ -47,20 +46,24 @@ class DirectoryResolverTest extends \PHPUnit_Framework_TestCase
      * @param bool $expectation
      * @dataProvider validatePathDataProvider
      * @magentoAppIsolation enabled
+     * @return void
      */
     public function testValidatePath($path, $directoryConfig, $expectation)
     {
-        $path = $this->directory->getAbsolutePath($path);
+        $directory = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);
+        $path = $directory->getAbsolutePath() .'/' .$path;
         $this->assertEquals($expectation, $this->directoryResolver->validatePath($path, $directoryConfig));
     }
 
     /**
      * @expectedException \Magento\Framework\Exception\FileSystemException
      * @magentoAppIsolation enabled
+     * @return void
      */
     public function testValidatePathWithException()
     {
-        $path = $this->directory->getAbsolutePath();
+        $directory = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);
+        $path = $directory->getAbsolutePath();
         $this->directoryResolver->validatePath($path, 'wrong_dir');
     }
 
@@ -73,13 +76,13 @@ class DirectoryResolverTest extends \PHPUnit_Framework_TestCase
             [
                 '/',
                 DirectoryList::MEDIA,
-                true
+                true,
             ],
             [
-                 '/../../pub/',
+                '/../../pub/',
                 DirectoryList::MEDIA,
-                false
-            ]
+                false,
+            ],
         ];
     }
 }

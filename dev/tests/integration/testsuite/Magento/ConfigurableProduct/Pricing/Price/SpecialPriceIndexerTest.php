@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\ConfigurableProduct\Pricing\Price;
@@ -13,7 +13,7 @@ use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Magento\TestFramework\Helper\Bootstrap;
 
-class SpecialPriceIndexerTest extends \PHPUnit_Framework_TestCase
+class SpecialPriceIndexerTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var ProductRepositoryInterface
@@ -41,10 +41,9 @@ class SpecialPriceIndexerTest extends \PHPUnit_Framework_TestCase
      * Use collection to check data in index
      * Do not use magentoDbIsolation because index statement changing "tears" transaction (triggers creating)
      *
-     * @magentoAppIsolation enabled
-     * @magentoDbIsolation enabled
      * @magentoDataFixture Magento/ConfigurableProduct/_files/product_configurable.php
      * @magentoDataFixture Magento/Catalog/_files/enable_price_index_schedule.php
+     * @magentoDbIsolation disabled
      */
     public function testFullReindexIfChildHasSpecialPrice()
     {
@@ -52,7 +51,6 @@ class SpecialPriceIndexerTest extends \PHPUnit_Framework_TestCase
         /** @var Product $childProduct */
         $childProduct = $this->productRepository->get('simple_10', true);
         $childProduct->setData('special_price', $specialPrice);
-
         $this->productRepository->save($childProduct);
 
         /** @var ProductCollection $collection */
@@ -75,21 +73,18 @@ class SpecialPriceIndexerTest extends \PHPUnit_Framework_TestCase
 
         /** @var Product $item */
         $item = $collection->getFirstItem();
-
         self::assertEquals($specialPrice, $item->getData('min_price'));
     }
 
     /**
      * Use collection to check data in index
      *
-     * @magentoAppIsolation enabled
-     * @magentoDbIsolation enabled
      * @magentoDataFixture Magento/ConfigurableProduct/_files/product_configurable.php
+     * @magentoDbIsolation disabled
      */
     public function testOnSaveIndexationIfChildHasSpecialPrice()
     {
         $specialPrice = 2;
-
         /** @var Product $childProduct */
         $childProduct = $this->productRepository->get('simple_10', true);
         $childProduct->setData('special_price', $specialPrice);
@@ -103,7 +98,6 @@ class SpecialPriceIndexerTest extends \PHPUnit_Framework_TestCase
 
         /** @var Product $item */
         $item = $collection->getFirstItem();
-
         self::assertEquals($specialPrice, $item->getData('min_price'));
     }
 }

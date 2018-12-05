@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\ConfigurableProduct\Pricing\Price;
@@ -14,7 +14,7 @@ use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Magento\Framework\Data\Collection;
 use Magento\TestFramework\Helper\Bootstrap;
 
-class SpecialPriceTest extends \PHPUnit_Framework_TestCase
+class SpecialPriceTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var ProductRepositoryInterface
@@ -34,6 +34,7 @@ class SpecialPriceTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @magentoDataFixture Magento/ConfigurableProduct/_files/product_configurable.php
+     * @magentoDbIsolation disabled
      */
     public function testPriceInfoIfChildHasSpecialPrice()
     {
@@ -42,13 +43,11 @@ class SpecialPriceTest extends \PHPUnit_Framework_TestCase
         /** @var Product $childProduct */
         $childProduct = $this->productRepository->get('simple_10', true);
         $childProduct->setData('special_price', $specialPrice);
-
         $this->productRepository->save($childProduct);
 
         /** @var Product $configurableProduct */
         $configurableProduct = $this->productRepository->get('configurable', true);
         $priceInfo = $configurableProduct->getPriceInfo();
-
         /** @var FinalPrice $finalPrice */
         $finalPrice = $priceInfo->getPrice(FinalPrice::PRICE_CODE);
 
@@ -58,6 +57,7 @@ class SpecialPriceTest extends \PHPUnit_Framework_TestCase
     /**
      * @magentoDataFixture Magento/ConfigurableProduct/_files/product_configurable.php
      * @magentoDataFixture Magento/ConfigurableProduct/_files/product_simple_77.php
+     * @magentoDbIsolation disabled
      */
     public function testSortingOfProductsIfChildHasNotSpecialPrice()
     {
@@ -67,7 +67,6 @@ class SpecialPriceTest extends \PHPUnit_Framework_TestCase
             ->setOptions([])
             ->setTierPrice([])
             ->setPrice(5);
-
         $this->productRepository->save($simpleProduct);
 
         /** @var ProductCollection $collection */
@@ -78,7 +77,6 @@ class SpecialPriceTest extends \PHPUnit_Framework_TestCase
 
         /** @var Product[] $items */
         $items = array_values($collection->getItems());
-
         self::assertEquals('configurable', $items[0]->getSku());
         self::assertEquals('simple_77', $items[1]->getSku());
     }
@@ -86,6 +84,7 @@ class SpecialPriceTest extends \PHPUnit_Framework_TestCase
     /**
      * @magentoDataFixture Magento/ConfigurableProduct/_files/product_configurable.php
      * @magentoDataFixture Magento/ConfigurableProduct/_files/product_simple_77.php
+     * @magentoDbIsolation disabled
      */
     public function testSortingOfProductsIfChildHasSpecialPrice()
     {
@@ -95,7 +94,6 @@ class SpecialPriceTest extends \PHPUnit_Framework_TestCase
             ->setOptions([])
             ->setTierPrice([])
             ->setPrice(5);
-
         $this->productRepository->save($simpleProduct);
 
         /** @var Product $childProduct */
@@ -111,7 +109,6 @@ class SpecialPriceTest extends \PHPUnit_Framework_TestCase
 
         /** @var Product[] $items */
         $items = array_values($collection->getItems());
-
         self::assertEquals('simple_77', $items[0]->getSku());
         self::assertEquals('configurable', $items[1]->getSku());
     }

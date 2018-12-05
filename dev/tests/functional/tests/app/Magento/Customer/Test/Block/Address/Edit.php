@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -29,6 +29,13 @@ class Edit extends Form
      * @var string
      */
     protected $vatFieldId = 'vat_id';
+
+    /**
+     * Locator for address simple (input, textarea, not multiple fields) attribute
+     *
+     * @var string
+     */
+    private $addressSimpleAttribute = "[name='%s']";
 
     /**
      * Edit customer address
@@ -72,11 +79,20 @@ class Edit extends Form
     protected function dataMapping(array $fields = null, $parent = null)
     {
         if (isset($fields['custom_attribute'])) {
-            $this->placeholders =
-                ['attribute_code' => $fields['custom_attribute']['code']];
+            $this->placeholders = ['attribute_code' => $fields['custom_attribute']['code']];
             $this->applyPlaceholders();
         }
-
         return parent::dataMapping($fields, $parent);
+    }
+
+    /**
+     * Check if Customer Address Simple(input, textarea, not multiple fields) Attribute visible
+     *
+     * @param string $attributeCode
+     * @return bool
+     */
+    public function isAddressSimpleAttributeVisible($attributeCode)
+    {
+        return $this->_rootElement->find(sprintf($this->addressSimpleAttribute, $attributeCode))->isVisible();
     }
 }

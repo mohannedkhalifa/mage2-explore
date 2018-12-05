@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -9,9 +9,9 @@ namespace Magento\Cms\Controller\Adminhtml\Wysiwyg\Images;
 use Magento\Framework\App\Filesystem\DirectoryList;
 
 /**
- * Class NewFolderTest
+ * Test for \Magento\Cms\Controller\Adminhtml\Wysiwyg\Images\NewFolder class.
  */
-class NewFolderTest extends \PHPUnit_Framework_TestCase
+class NewFolderTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var \Magento\Cms\Controller\Adminhtml\Wysiwyg\Images\NewFolder
@@ -26,45 +26,65 @@ class NewFolderTest extends \PHPUnit_Framework_TestCase
     /**
      * @var string
      */
-    private $fullDirectoryPath;
-
-    /**
-     * @var string
-     */
     private $dirName= 'NewDirectory';
 
     /**
-     * {@inheritDoc}
+     * @var \Magento\Framework\Filesystem
+     */
+    private $filesystem;
+
+    /**
+     * @var \Magento\Cms\Helper\Wysiwyg\Images
+     */
+    private $imagesHelper;
+
+    /**
+     * @inheritdoc
      */
     protected function setUp()
     {
         $objectManager = \Magento\TestFramework\Helper\Bootstrap::getObjectManager();
-        $filesystem = $objectManager->get('Magento\Framework\Filesystem');
-        $this->mediaDirectory = $filesystem->getDirectoryWrite(DirectoryList::MEDIA);
+        $this->filesystem = $objectManager->get(\Magento\Framework\Filesystem::class);
         /** @var \Magento\Cms\Helper\Wysiwyg\Images $imagesHelper */
-        $imagesHelper = $objectManager->get(\Magento\Cms\Helper\Wysiwyg\Images::class);
-        $this->fullDirectoryPath = $imagesHelper->getStorageRoot();
+        $this->imagesHelper = $objectManager->get(\Magento\Cms\Helper\Wysiwyg\Images::class);
+        $this->mediaDirectory = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);
         $this->model = $objectManager->get(\Magento\Cms\Controller\Adminhtml\Wysiwyg\Images\NewFolder::class);
     }
 
     /**
-     * Execute method with correct directory path to check that new folder can be created under WYSIWYG media directory
-     *
-     * @return void
+     * Execute method with correct directory path to check that new folder can be created under linked media directory.
      */
     public function testExecute()
     {
+        $fullDirectoryPath = $this->imagesHelper->getStorageRoot();
         $this->model->getRequest()->setMethod('POST')
             ->setPostValue('name', $this->dirName);
-        $this->model->getStorage()->getSession()->setCurrentPath($this->fullDirectoryPath);
+        $this->model->getStorage()->getSession()->setCurrentPath($fullDirectoryPath);
         $this->model->execute();
-        $this::assertTrue(
+        $this->assertTrue(
             $this->mediaDirectory->isExist(
                 $this->mediaDirectory->getRelativePath(
-                    $this->fullDirectoryPath . DIRECTORY_SEPARATOR . $this->dirName
+                    $fullDirectoryPath . DIRECTORY_SEPARATOR . $this->dirName
                 )
             )
         );
+    }
+
+    /**
+     * Execute method with correct directory path to check that new folder can be created under WYSIWYG media directory.
+     *
+     * @magentoDataFixture Magento/Cms/_files/linked_media.php
+     */
+    public function testExecuteWithLinkedMedia()
+    {
+        $linkedDirectoryPath =  $this->filesystem->getDirectoryRead(DirectoryList::PUB)
+                ->getAbsolutePath() . DIRECTORY_SEPARATOR . 'linked_media';
+        $fullDirectoryPath = $this->imagesHelper->getStorageRoot();
+        $this->model->getRequest()->setMethod('POST')
+            ->setPostValue('name', $this->dirName);
+        $this->model->getStorage()->getSession()->setCurrentPath($fullDirectoryPath);
+        $this->model->execute();
+        $this->assertTrue(is_dir($linkedDirectoryPath . DIRECTORY_SEPARATOR . $this->dirName));
     }
 
     /**
@@ -73,7 +93,7 @@ class NewFolderTest extends \PHPUnit_Framework_TestCase
     public static function tearDownAfterClass()
     {
         $filesystem = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()
-            ->get('Magento\Framework\Filesystem');
+            ->get(\Magento\Framework\Filesystem::class);
         /** @var \Magento\Framework\Filesystem\Directory\WriteInterface $directory */
         $directory = $filesystem->getDirectoryWrite(DirectoryList::MEDIA);
         if ($directory->isExist('wysiwyg')) {

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -35,6 +35,45 @@ class Method extends Block
     protected $billingAddressSelector = '.payment-method-billing-address';
 
     /**
+     * PayPal load spinner.
+     *
+     * @var string
+     */
+    protected $preloaderSpinner = '#preloaderSpinner';
+
+    /**
+     * Continue to PayPal button for Braintree.
+     *
+     * @var string
+     */
+    protected $continueToBraintreePaypalButton = '#braintree_paypal_continue_to';
+
+    /**
+     * Pay with Paypal button for Braintree.
+     *
+     * @var string
+     */
+    protected $payWithBraintreePaypalButton = '#braintree_paypal_pay_with';
+
+    /**
+     * Paypal page elements locator.
+     *
+     * @var string
+     */
+    private $popupWindowContent = '#main';
+
+    /**
+     * Wait for PayPal page is loaded.
+     *
+     * @return void
+     */
+    public function waitForFormLoaded()
+    {
+        $this->waitForElementNotVisible($this->preloaderSpinner);
+        $this->waitForElementVisible($this->popupWindowContent);
+    }
+
+    /**
      * Place order.
      *
      * @return void
@@ -43,6 +82,54 @@ class Method extends Block
     {
         $this->_rootElement->find($this->placeOrderButton)->click();
         $this->waitForElementNotVisible($this->waitElement);
+    }
+
+    /**
+     * Click Continue to Paypal button.
+     *
+     * @return string
+     */
+    public function clickContinueToPaypal()
+    {
+        $currentWindow = $this->browser->getCurrentWindow();
+        $windowsCount = count($this->browser->getWindowHandles());
+        $this->waitForElementNotVisible($this->waitElement);
+        $this->_rootElement->find($this->continueToBraintreePaypalButton)->click();
+        $this->waitForElementNotVisible($this->waitElement);
+        $this->waitUntilNumberOfWindowsToBe(++$windowsCount);
+
+        return $currentWindow;
+    }
+
+    /**
+     * Click Pay with Paypal button.
+     *
+     * @return string
+     */
+    public function clickPayWithPaypal()
+    {
+        $currentWindow = $this->browser->getCurrentWindow();
+        $windowsCount = count($this->browser->getWindowHandles());
+        $this->waitForElementNotVisible($this->waitElement);
+        $this->_rootElement->find($this->payWithBraintreePaypalButton)->click();
+        $this->waitForElementNotVisible($this->waitElement);
+        $this->waitUntilNumberOfWindowsToBe(++$windowsCount);
+
+        return $currentWindow;
+    }
+    
+    /**
+     * Click "Check out with PayPal" button.
+     */
+    public function inContextPaypalCheckout()
+    {
+        $this->waitForElementNotVisible($this->waitElement);
+        $windowsCount = count($this->browser->getWindowHandles());
+        $this->_rootElement->find($this->placeOrderButton)->click();
+        $this->waitUntilNumberOfWindowsToBe(++$windowsCount);
+        $this->browser->selectWindow();
+        $this->waitForFormLoaded();
+        $this->browser->closeWindow();
     }
 
     /**
@@ -55,8 +142,20 @@ class Method extends Block
         $element = $this->_rootElement->find($this->billingAddressSelector);
 
         return $this->blockFactory->create(
-            '\Magento\Checkout\Test\Block\Onepage\Payment\Method\Billing',
+            \Magento\Checkout\Test\Block\Onepage\Payment\Method\Billing::class,
             ['element' => $element]
         );
+    }
+
+    /**
+     * @param int $windowsCount
+     * @return void
+     */
+    private function waitUntilNumberOfWindowsToBe(int $windowsCount)
+    {
+        $browser = $this->browser;
+        $this->browser->waitUntil(function () use ($browser, $windowsCount) {
+            return count($browser->getWindowHandles()) === $windowsCount ? true : null;
+        });
     }
 }

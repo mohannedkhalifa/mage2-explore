@@ -1,12 +1,12 @@
 /**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 define([
     'ko',
     'jquery',
-    'Magento_Ui/js/lib/ko/bind/i18n',
+    'Magento_Ui/js/lib/knockout/bindings/i18n',
     'mage/translate'
 ], function (ko, $) {
     'use strict';
@@ -15,35 +15,40 @@ define([
         var elWithStaticText = $('<span />'),
             elWithVariable = $('<span />'),
             staticText = 'staticText',
-            staticTextTranslated = 'staticTextTranslated',
-            staticTextTranslatedRaw = '{{{staticTextTranslated}}{{staticTextTranslated}}{{staticText}}{{theme}}}',
             variableText = 'variableText',
             variable = ko.observable(variableText),
-            variableTranslated = 'variableTextTranslated',
-            variableTranslatedRaw = '{{{variableTextTranslated}}{{variableTextTranslated}}{{variableText}}{{theme}}}',
             dataTranslateAttr = '[{"shown":"&","translated":"&","original":"$","location":"Span element"}]',
             dataTranslateAttrName = 'data-translate',
             context = require.s.contexts._,
+
+            /** Stub */
             manageInlineTranslation = function (state) {
                 context.config.config = {
-                    'Magento_Ui/js/lib/ko/bind/i18n': {
+                    'Magento_Ui/js/lib/knockout/bindings/i18n': {
                         inlineTranslation: !!state
                     }
                 };
             },
+
+            /** Stub */
             turnOnInlineTranslation = function () {
                 manageInlineTranslation(true);
             },
+
+            /** Stub */
             turnOffInlineTranslation = function () {
                 manageInlineTranslation(false);
-            };
+            },
+            storedConfig;
 
         beforeEach(function () {
+            storedConfig = context.config.config;
             $(document.body).append(elWithStaticText);
             $(document.body).append(elWithVariable);
         });
 
         afterEach(function () {
+            context.config.config = storedConfig;
             elWithStaticText.remove();
             elWithVariable.remove();
         });
@@ -65,7 +70,7 @@ define([
         });
 
         it('if inline translation is on, ' +
-            'and there is no translation for this text, set original text for element', function () {
+        'and there is no translation for this text, set original text for element', function () {
             turnOnInlineTranslation();
 
             ko.applyBindingsToNode(elWithStaticText[0], {
