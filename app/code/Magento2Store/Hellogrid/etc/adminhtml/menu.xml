@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Magento2Store_Hellogrid::hellogrid" title="Hello Grid" module="Magento2Store_Hellogrid" sortOrder="99"
+             resource="Magento2Store_Hellogrid::hellogrid"/>
+        <add id="Magento2Store_Hellogrid::post" title="Manage Posts" module="Magento2Store_Hellogrid" sortOrder="10"
+             action="hellogrid/post" resource="Magento2Store_Hellogrid::post"
+             parent="Magento2Store_Hellogrid::hellogrid"/>
+        <add id="Magento2Store_Hellogrid::hello_configuration" title="Configuration" module="Magento2Store_Hellogrid"
+             sortOrder="20" parent="Magento2Store_Hellogrid::hellogrid"
+             action="adminhtml/system_config/edit/section/hellogrid"
+             resource="Magento2Store_Hellogrid::hellogrid_configuration"/>
+    </menu>
+</config>
