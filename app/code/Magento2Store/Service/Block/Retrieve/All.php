@@ -26,7 +26,7 @@ class All extends Template
         parent::__construct($context);
     }
 
-    public function getServicesJson()
+    public function getServicesHtml()
     {
         $partnerModel = $this->_partnerFactory->create();
         $vendors      = json_decode($partnerModel->getVendors(), true);

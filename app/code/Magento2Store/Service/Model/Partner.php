@@ -8,7 +8,7 @@ use \Magento2Store\Service\Helper\Data;
 use \Magento\Framework\Stdlib\Cookie\CookieMetadataFactory;
 use \Magento\Framework\Stdlib\CookieManagerInterface;
 use \Magento\Framework\Session\SessionManagerInterface;
-use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
+use \Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 
 class Partner
 {
